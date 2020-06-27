@@ -14,6 +14,7 @@ class _OrderViewState extends State<OrderView> {
   OrderService service;
   final _formKey = GlobalKey<FormState>();
   var order = "";
+  var _tanggal = DateTime.now().toString().substring(0, 10);
 
   @override
   void initState() {
@@ -60,15 +61,15 @@ class _OrderViewState extends State<OrderView> {
                       ),
                     ),
                   )),
-              getOrdersWidget(order: order)
+              getOrdersWidget(_tanggal, order: order)
             ],
           ),
         )));
   }
 
-  Widget getOrdersWidget({String order}) {
+  Widget getOrdersWidget(String tanggal, {String order}) {
     return FutureBuilder(
-      future: service.getDataOrder(order: order),
+      future: service.getDataOrderHari(tanggal, noorder: order),
       builder: (BuildContext context, AsyncSnapshot<List<Order>> snapshot) {
         return getOrderCardWidget(snapshot);
       },

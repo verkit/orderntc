@@ -3,20 +3,26 @@ import 'package:orderntc/api.dart';
 import 'package:orderntc/models/order.dart';
 
 class OrderService {
-  Future<List<Order>> getDataOrder(
-      {String order, String sales, String tanggal}) async {
-    final response = await Dio().get(Api.orderUrl, queryParameters: {
-      "noorder": order,
-      "nama_sales": sales,
-      "tanggal": tanggal
-    });
+  // Future<List<Order>> getDataOrder(String order) async {
+  //   final response =
+  //       await Dio().get(Api.orderUrl, queryParameters: {"noorder": order});
+  //   if (response.statusCode == 200) {
+  //     return Order.fromJsonList(response.data);
+  //   } else {
+  //     return null;
+  //   }
+  // }
+
+  Future<List<Order>> getDataOrderHari(String tanggal, {String noorder}) async {
+    final response = await Dio().get(Api.orderHarianUrl + tanggal,
+        queryParameters: {"noorder": noorder});
     if (response.statusCode == 200) {
       return Order.fromJsonList(response.data);
     } else {
       return null;
     }
   }
-  
+
   Future<List<Order>> getDataByNomor(String nomor) async {
     final response = await Dio().get(Api.noOrderUrl + "/$nomor");
     if (response.statusCode == 200) {
@@ -28,7 +34,8 @@ class OrderService {
 
   Future<List<Order>> getDataBySales(
       {String sales, String tglawal, String tglakhir}) async {
-    final response = await Dio().get(Api.orderSalesUrl + "/$sales", queryParameters: {
+    final response =
+        await Dio().get(Api.orderSalesUrl + "/$sales", queryParameters: {
       "tanggalakhir": tglakhir,
       "tanggalawal": tglawal,
     });

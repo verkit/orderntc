@@ -6,6 +6,7 @@ import 'package:orderntc/services/barang_service.dart';
 import 'package:orderntc/services/order_service.dart';
 import 'package:orderntc/services/pelanggan_service.dart';
 import 'package:orderntc/services/sales_service.dart';
+import 'package:orderntc/ui/styles/textstyle.dart';
 
 class FormOrder extends StatefulWidget {
   FormOrder({Key key, this.order}) : super(key: key);
@@ -24,6 +25,7 @@ class _FormOrderState extends State<FormOrder> {
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   final TextEditingController _qtyController = TextEditingController();
   final TextEditingController _barangController = TextEditingController();
+  final TextEditingController _kodeBarangController = TextEditingController();
   final TextEditingController _salesController = TextEditingController();
   final TextEditingController _pelangganController = TextEditingController();
   final TextEditingController _hargaController = TextEditingController();
@@ -35,19 +37,19 @@ class _FormOrderState extends State<FormOrder> {
       _pelanggan,
       _kodepelanggan,
       _barang,
-      _kodebarang,
+      _kodebarang = "",
       _satuan,
       _qty,
       _jual1,
       _jual2,
       _jual3;
   int _order;
-
+  static final now = DateTime.now();
   var _date = DateTime.now().toString().substring(0, 10);
-  var unique = DateFormat.y().format(DateTime.now()) +
-      DateFormat.M().format(DateTime.now()) +
-      DateFormat.d().format(DateTime.now()) +
-      DateFormat.s().format(DateTime.now());
+  var unique = DateFormat.y().format(now) +
+      DateFormat.M().format(now) +
+      DateFormat.d().format(now) +
+      DateFormat.s().format(now);
 
   int i = 1;
 
@@ -55,6 +57,9 @@ class _FormOrderState extends State<FormOrder> {
     _barangController.clear();
     _qtyController.clear();
     _hargaController.clear();
+    setState(() {
+      _kodebarang = "";
+    });
   }
 
   void _clearNewForm() {
@@ -105,6 +110,21 @@ class _FormOrderState extends State<FormOrder> {
                   _salesForm(),
                   Divider(),
                   _barangForm(),
+                  Text(
+                    _kodebarang,
+                    style: latoSubtitle,
+                  ),
+                  // TextFormField(
+                  //     controller: _kodeBarangController,
+                  //     enabled: false,
+                  //     decoration: InputDecoration(
+                  //       hintText: _kodeBarangController.text,
+                  //       border: InputBorder.none,
+                  //       focusedBorder: InputBorder.none,
+                  //       enabledBorder: InputBorder.none,
+                  //       errorBorder: InputBorder.none,
+                  //       disabledBorder: InputBorder.none,
+                  //     )),
                   Divider(),
                   _hargaForm(),
                   Divider(),
@@ -143,6 +163,7 @@ class _FormOrderState extends State<FormOrder> {
         this._jual1 = suggestion.jual1();
         this._jual2 = suggestion.jual2();
         this._jual3 = suggestion.jual3();
+        setState(() {});
       },
       transitionBuilder: (context, suggestionsBox, controller) {
         return suggestionsBox;

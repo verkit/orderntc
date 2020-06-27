@@ -5,6 +5,7 @@ class Api {
   static var pelangganUrl = "$_baseUrl/pelanggan";
   static var barangUrl = "$_baseUrl/barang";
   static var orderUrl = "$_baseUrl/order";
+  static var orderHarianUrl = "$_baseUrl/order/rekapd/";
   static var noOrderUrl = "$_baseUrl/order/nomor";
   static var orderSalesUrl = "$_baseUrl/order/sales";
 }
