@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:intl/intl.dart';
@@ -25,7 +27,6 @@ class _FormOrderState extends State<FormOrder> {
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   final TextEditingController _qtyController = TextEditingController();
   final TextEditingController _barangController = TextEditingController();
-  final TextEditingController _kodeBarangController = TextEditingController();
   final TextEditingController _salesController = TextEditingController();
   final TextEditingController _pelangganController = TextEditingController();
   final TextEditingController _hargaController = TextEditingController();
@@ -42,33 +43,20 @@ class _FormOrderState extends State<FormOrder> {
       _qty,
       _jual1,
       _jual2,
-      _jual3;
-  int _order;
-  static final now = DateTime.now();
+      _jual3,
+      _kemasan1,
+      _kemasan2,
+      _kemasan3,
+      _order;
+
   var _date = DateTime.now().toString().substring(0, 10);
-  var unique = DateFormat.y().format(now) +
-      DateFormat.M().format(now) +
-      DateFormat.d().format(now) +
-      DateFormat.s().format(now);
+  var tanggal = DateFormat.y().format(DateTime.now()) +
+      DateFormat.M().format(DateTime.now()) +
+      DateFormat.d().format(DateTime.now()) +
+      DateFormat.m().format(DateTime.now()) +
+      DateFormat.s().format(DateTime.now());
 
   int i = 1;
-
-  void _clearSubmitForm() {
-    _barangController.clear();
-    _qtyController.clear();
-    _hargaController.clear();
-    setState(() {
-      _kodebarang = "";
-    });
-  }
-
-  void _clearNewForm() {
-    _salesController.clear();
-    _qtyController.clear();
-    _pelangganController.clear();
-    _barangController.clear();
-    _hargaController.clear();
-  }
 
   @override
   void initState() {
@@ -83,14 +71,20 @@ class _FormOrderState extends State<FormOrder> {
       _kodebarang = widget.order.kodeBarang;
       _kodepelanggan = widget.order.kodePelanggan;
       _kodesales = widget.order.kodeSales;
+      _order = widget.order.nomorOrder;
+
+      _jual2 = "";
+      _jual3 = "";
+      _kemasan2 = "";
+      _kemasan3 = "";
+    } else {
+      _order = int.parse(tanggal);
     }
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    _order = int.parse(unique);
-
     return Scaffold(
         key: _scaffoldKey,
         appBar: AppBar(
@@ -105,26 +99,32 @@ class _FormOrderState extends State<FormOrder> {
               child: ListView(
                 physics: BouncingScrollPhysics(),
                 children: <Widget>[
-                  _pelangganForm(),
+                  Text(
+                    "No order: ${_order.toString()}",
+                    style: latoSubtitle,
+                  ),
                   Divider(),
+                  widget.order == null
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              "Inputan ke: $i",
+                              style: latoSubtitle,
+                            ),
+                            Divider(),
+                          ],
+                        )
+                      : Container(),
                   _salesForm(),
+                  Divider(),
+                  _pelangganForm(),
                   Divider(),
                   _barangForm(),
                   Text(
                     _kodebarang,
                     style: latoSubtitle,
                   ),
-                  // TextFormField(
-                  //     controller: _kodeBarangController,
-                  //     enabled: false,
-                  //     decoration: InputDecoration(
-                  //       hintText: _kodeBarangController.text,
-                  //       border: InputBorder.none,
-                  //       focusedBorder: InputBorder.none,
-                  //       enabledBorder: InputBorder.none,
-                  //       errorBorder: InputBorder.none,
-                  //       disabledBorder: InputBorder.none,
-                  //     )),
                   Divider(),
                   _hargaForm(),
                   Divider(),
@@ -159,10 +159,12 @@ class _FormOrderState extends State<FormOrder> {
       onSuggestionSelected: (suggestion) {
         this._barangController.text = suggestion.namaBarang();
         this._kodebarang = suggestion.kodeBarang();
-        this._satuanController.text = suggestion.satuanBarang();
         this._jual1 = suggestion.jual1();
         this._jual2 = suggestion.jual2();
         this._jual3 = suggestion.jual3();
+        this._kemasan1 = suggestion.satuan1();
+        this._kemasan2 = suggestion.satuan2();
+        this._kemasan3 = suggestion.satuan3();
         setState(() {});
       },
       transitionBuilder: (context, suggestionsBox, controller) {
@@ -249,13 +251,12 @@ class _FormOrderState extends State<FormOrder> {
   }
 
   Widget _hargaForm() {
-    Future<List<String>> hargaSuggestion(String query) async {
-      List<String> harga = List();
-      harga.add(_jual1);
-      if (widget.order == null) {
-        harga.add(_jual2);
-        harga.add(_jual3);
-      }
+    Future<List<List<String>>> hargaSuggestion(String query) async {
+      List<List<String>> harga = List();
+
+      harga.add([_jual1, _kemasan1]);
+      harga.add([_jual2, _kemasan2]);
+      harga.add([_jual3, _kemasan3]);
 
       // harga.retainWhere((s) => s.toLowerCase().contains(query.toLowerCase()));
       return harga;
@@ -275,11 +276,13 @@ class _FormOrderState extends State<FormOrder> {
       },
       itemBuilder: (context, suggestion) {
         return ListTile(
-          title: Text(suggestion),
+          title: Text(suggestion[0]),
         );
       },
       onSuggestionSelected: (suggestion) {
-        this._hargaController.text = suggestion;
+        this._hargaController.text = suggestion[0];
+        this._satuanController.text = suggestion[1];
+        setState(() {});
       },
       transitionBuilder: (context, suggestionsBox, controller) {
         return suggestionsBox;
@@ -336,6 +339,27 @@ class _FormOrderState extends State<FormOrder> {
   }
 
   Widget btnTambah() {
+    void _clearSubmitForm() {
+      _barangController.clear();
+      _qtyController.clear();
+      _hargaController.clear();
+      setState(() {
+        _kodebarang = "";
+      });
+    }
+
+    void _clearNewForm() {
+      _salesController.clear();
+      _qtyController.clear();
+      _pelangganController.clear();
+      _barangController.clear();
+      _hargaController.clear();
+      setState(() {
+        i = 1;
+        _order = _order + 1;
+      });
+    }
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: <Widget>[
@@ -343,8 +367,6 @@ class _FormOrderState extends State<FormOrder> {
           padding: const EdgeInsets.symmetric(vertical: 16.0),
           child: RaisedButton(
             onPressed: () {
-              i = 1;
-              _order = _order + 1;
               _clearNewForm();
             },
             child: Text('Baru'),

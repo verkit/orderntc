@@ -1,6 +1,6 @@
 class Barang {
   int id;
-  String kode, barang, satuan, harga1, harga2, harga3;
+  String kode, barang, kemasan1, kemasan2, kemasan3, harga1, harga2, harga3;
 
   Barang(
       {this.id,
@@ -9,7 +9,9 @@ class Barang {
       this.harga3,
       this.kode,
       this.barang,
-      this.satuan});
+      this.kemasan1,
+      this.kemasan2,
+      this.kemasan3});
 
   Map<String, dynamic> toJson() {
     return {
@@ -19,7 +21,9 @@ class Barang {
       "hargajual1": harga1,
       "hargajual2": harga2,
       "hargajual3": harga3,
-      "nama_kemasan": satuan,
+      "kemasan1": kemasan1,
+      "kemasan2": kemasan2,
+      "kemasan3": kemasan3,
     };
   }
 
@@ -31,7 +35,9 @@ class Barang {
         harga1: map["hargajual1"],
         harga2: map["hargajual2"],
         harga3: map["hargajual3"],
-        satuan: map["nama_kemasan"]);
+        kemasan1: map["kemasan1"],
+        kemasan2: map["kemasan2"],
+        kemasan3: map["kemasan3"]);
   }
 
   static List<Barang> fromJsonList(List list) {
@@ -41,7 +47,9 @@ class Barang {
 
   String namaBarang() => barang;
   String kodeBarang() => kode;
-  String satuanBarang() => satuan.substring(4,7);
+  String satuan1() => kemasan1;
+  String satuan2() => kemasan2;
+  String satuan3() => kemasan3;
   String jual1() => harga1;
   String jual2() => harga2;
   String jual3() => harga3;
