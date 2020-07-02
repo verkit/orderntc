@@ -32,6 +32,9 @@ class _FormOrderState extends State<FormOrder> {
   final TextEditingController _hargaController = TextEditingController();
   final TextEditingController _satuanController = TextEditingController();
 
+  List<String> listharga = List(3);
+  List<String> listsatuan = List(3);
+
   var _sales,
       _kodesales,
       _harga,
@@ -47,6 +50,7 @@ class _FormOrderState extends State<FormOrder> {
       _kemasan1,
       _kemasan2,
       _kemasan3,
+      _total = 0,
       _order;
 
   var _date = DateTime.now().toString().substring(0, 10);
@@ -72,7 +76,7 @@ class _FormOrderState extends State<FormOrder> {
       _kodepelanggan = widget.order.kodePelanggan;
       _kodesales = widget.order.kodeSales;
       _order = widget.order.nomorOrder;
-
+      _total = int.parse(widget.order.harga) * widget.order.qty;
       _jual2 = "";
       _jual3 = "";
       _kemasan2 = "";
@@ -126,9 +130,9 @@ class _FormOrderState extends State<FormOrder> {
                     style: latoSubtitle,
                   ),
                   Divider(),
-                  _hargaForm(),
-                  Divider(),
                   _kuantitasForm(),
+                  Divider(),
+                  _hargaTotalForm(),
                   Divider(),
                   widget.order == null ? btnTambah() : btnEdit(),
                 ],
@@ -251,19 +255,20 @@ class _FormOrderState extends State<FormOrder> {
   }
 
   Widget _hargaForm() {
-    Future<List<List<String>>> hargaSuggestion(String query) async {
-      List<List<String>> harga = List();
-
-      harga.add([_jual1, _kemasan1]);
-      harga.add([_jual2, _kemasan2]);
-      harga.add([_jual3, _kemasan3]);
-
+    Future<List<String>> hargaSuggestion(String query) async {
+      listharga[0] =
+          _jual1.toString().substring(0, _jual1.toString().indexOf('.'));
+      listharga[1] =
+          _jual2.toString().substring(0, _jual2.toString().indexOf('.'));
+      listharga[2] =
+          _jual3.toString().substring(0, _jual3.toString().indexOf('.'));
       // harga.retainWhere((s) => s.toLowerCase().contains(query.toLowerCase()));
-      return harga;
+      return listharga;
     }
 
     return TypeAheadFormField(
       textFieldConfiguration: TextFieldConfiguration(
+          enabled: _jual1 == null ? false : true,
           controller: this._hargaController,
           decoration: new InputDecoration(
             labelText: "Harga",
@@ -276,13 +281,15 @@ class _FormOrderState extends State<FormOrder> {
       },
       itemBuilder: (context, suggestion) {
         return ListTile(
-          title: Text(suggestion[0]),
+          title: Text(suggestion),
         );
       },
       onSuggestionSelected: (suggestion) {
-        this._hargaController.text = suggestion[0];
-        this._satuanController.text = suggestion[1];
-        setState(() {});
+        this._hargaController.text = suggestion;
+        setState(() {
+          _total = int.parse(this._hargaController.text) *
+              int.parse(this._qtyController.text);
+        });
       },
       transitionBuilder: (context, suggestionsBox, controller) {
         return suggestionsBox;
@@ -297,12 +304,76 @@ class _FormOrderState extends State<FormOrder> {
     );
   }
 
+  Widget _hargaTotalForm() {
+    return Row(
+      children: <Widget>[
+        Flexible(flex: 1, child: _hargaForm()),
+        SizedBox(
+          width: 20,
+        ),
+        Flexible(
+          flex: 1,
+          child: Text(_total.toString()),
+        )
+      ],
+    );
+  }
+
+  Widget _satuanForm() {
+    Future<List<String>> satuanSuggestion(String query) async {
+      listsatuan[0] = _kemasan1;
+      listsatuan[1] = _kemasan2;
+      listsatuan[2] = _kemasan3;
+
+      return listsatuan;
+    }
+
+    return TypeAheadFormField(
+      textFieldConfiguration: TextFieldConfiguration(
+        enabled: _jual1 == null ? false : true,
+        controller: this._satuanController,
+        decoration: new InputDecoration(
+          labelText: "Satuan",
+          hintText: _satuanController.text,
+          border: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          errorBorder: InputBorder.none,
+          disabledBorder: InputBorder.none,
+        ),
+      ),
+      suggestionsCallback: (pattern) async {
+        return await satuanSuggestion(pattern);
+      },
+      itemBuilder: (context, suggestion) {
+        return ListTile(
+          title: Text(suggestion),
+        );
+      },
+      onSuggestionSelected: (suggestion) {
+        this._satuanController.text = suggestion;
+        setState(() {});
+      },
+      transitionBuilder: (context, suggestionsBox, controller) {
+        return suggestionsBox;
+      },
+      validator: (value) {
+        if (value.isEmpty) {
+          return 'Satuan harap diisi';
+        }
+        return null;
+      },
+      onSaved: (value) => this._satuan = value,
+    );
+  }
+
   Widget _kuantitasForm() {
     return Row(
       children: <Widget>[
         Flexible(
-          flex: 8,
+          flex: 4,
           child: TextFormField(
+            maxLines: 1,
             controller: _qtyController,
             decoration: InputDecoration(
                 labelText: "Kuantitas",
@@ -314,6 +385,10 @@ class _FormOrderState extends State<FormOrder> {
               }
               return null;
             },
+            onChanged: (val) {
+              _total = int.parse(val) * int.parse(_hargaController.text);
+              setState(() {});
+            },
             onSaved: (val) => _qty = val,
           ),
         ),
@@ -321,19 +396,9 @@ class _FormOrderState extends State<FormOrder> {
           width: 20,
         ),
         Flexible(
-            flex: 1,
-            child: TextFormField(
-                controller: _satuanController,
-                enabled: false,
-                decoration: InputDecoration(
-                  hintText: _satuanController.text,
-                  border: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  errorBorder: InputBorder.none,
-                  disabledBorder: InputBorder.none,
-                ),
-                onSaved: (val) => _satuan = val)),
+          flex: 1,
+          child: _satuanForm(),
+        )
       ],
     );
   }
